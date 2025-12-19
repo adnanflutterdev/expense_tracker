@@ -1,3 +1,5 @@
+import 'package:expense_tracker/helper/show_snackbars.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -8,194 +10,335 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  ValueNotifier<bool> isPasswordVisible = ValueNotifier(false);
+  ValueNotifier<bool> isObscure = ValueNotifier(true);
+  ValueNotifier<bool> isSigninPage = ValueNotifier(true);
+  ValueNotifier<bool> isSigningin = ValueNotifier(false);
+
+  TextEditingController email = TextEditingController();
+  TextEditingController pass = TextEditingController();
+  final formKey = GlobalKey<FormState>();
+
+  void authenticate({required bool isSignin}) async {
+    bool isValid = formKey.currentState!.validate();
+
+    if (isValid) {
+      isSigningin.value = true;
+      if (isSignin) {
+        // print('On Login Screen');
+
+        try {
+          await FirebaseAuth.instance.signInWithEmailAndPassword(
+            email: email.text.trim(),
+            password: pass.text.trim(),
+          );
+          if (!mounted) {
+            return;
+          }
+          displaySnackBar(
+            context: context,
+            isSuccess: true,
+            message: 'Loggedin Successfully...',
+          );
+        } on FirebaseAuthException catch (err) {
+          displaySnackBar(
+            context: context,
+            isSuccess: true,
+            message: err.message ?? 'Unknown error occured...',
+          );
+        }
+      } else {
+        // print('On Signup Screen');
+
+        try {
+          final result = await FirebaseAuth.instance
+              .createUserWithEmailAndPassword(
+                email: email.text.trim(),
+                password: pass.text.trim(),
+              );
+          if (!mounted) {
+            return;
+          }
+          displaySnackBar(
+            context: context,
+            isSuccess: true,
+            message: 'Account Created Successfully...',
+          );
+        } on FirebaseAuthException catch (err) {
+          displaySnackBar(
+            context: context,
+            isSuccess: true,
+            message: err.message ?? 'Unknown error occured...',
+          );
+        }
+      }
+      isSigningin.value = false;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     return Scaffold(
       body: SafeArea(
-        child: Column(
-          children: [
-            SizedBox(height: 20),
-            Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                color: Colors.deepPurple,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Center(
-                child: Text(
-                  'E',
-                  style: TextStyle(
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              SizedBox(height: 20),
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  color: Colors.deepPurple,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Center(
+                  child: Text(
+                    'E',
+                    style: TextStyle(
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ),
-            ),
-            SizedBox(height: 30),
-            Text(
-              'Welcome to',
-              style: TextStyle(
-                color: Colors.black,
-                fontSize: 30,
-                fontWeight: FontWeight.bold,
+              SizedBox(height: 30),
+              Text(
+                'Welcome to',
+                style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 30,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'Expense',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'Expense',
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-                Text(
-                  'Tracker',
-                  style: TextStyle(
-                    color: Colors.purpleAccent,
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
+                  Text(
+                    'Tracker',
+                    style: TextStyle(
+                      color: Colors.purpleAccent,
+                      fontSize: 30,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            SizedBox(height: 10),
-            Text(
-              'Track Your Spending Smartly',
-              style: TextStyle(color: Colors.grey),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Container(
-                padding: EdgeInsets.all(15),
-                decoration: BoxDecoration(),
-                child: Form(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Email',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey,
-                          fontSize: 16,
-                        ),
-                      ),
-                      TextFormField(
-                        decoration: InputDecoration(
-                          prefixIcon: Icon(Icons.email_outlined),
-                          hintText: 'name@example.com',
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15),
+                ],
+              ),
+              SizedBox(height: 10),
+              Text(
+                'Track Your Spending Smartly',
+                style: TextStyle(color: Colors.grey),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Container(
+                  padding: EdgeInsets.all(15),
+                  decoration: BoxDecoration(),
+                  child: Form(
+                    key: formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Email',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                            fontSize: 16,
                           ),
                         ),
-                      ),
-                      SizedBox(height: 20),
-                      Text(
-                        'Password',
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.grey,
-                          fontSize: 16,
-                        ),
-                      ),
-                      TextFormField(
-                        decoration: InputDecoration(
-                          prefixIcon: Icon(Icons.lock_outline),
-                          suffixIcon: ValueListenableBuilder(
-                            valueListenable: isPasswordVisible,
-                            builder: (context, isVisible, child) {
-                              return IconButton(
-                                onPressed: () {
-                                  isPasswordVisible.value = !isVisible;
-                                },
-                                icon: Icon(
-                                  isVisible
-                                      ? Icons.visibility_off
-                                      : Icons.visibility,
-                                ),
-                              );
-                            },
-                          ),
-                          hintText: '*******',
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      Center(
-                        child: SizedBox(
-                          width: width - 70,
-                          height: 50,
-                          child: ElevatedButton(
-                            onPressed: () {},
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.deepPurple,
-                              foregroundColor: Colors.white,
-                              textStyle: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadiusGeometry.circular(12),
-                              ),
+                        TextFormField(
+                          controller: email,
+                          decoration: InputDecoration(
+                            prefixIcon: Icon(Icons.email_outlined),
+                            hintText: 'name@example.com',
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15),
                             ),
-                            child: Text('Sign In'),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                            errorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15),
+                              borderSide: BorderSide(color: Colors.red),
+                            ),
+                            focusedErrorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(15),
+                            ),
+                          ),
+
+                          validator: (value) {
+                            if (value == null || value.trim().isEmpty) {
+                              return 'Enter email';
+                            } else if (!value.trim().contains('@') ||
+                                !value.trim().endsWith('.com')) {
+                              return 'Enter valid email';
+                            }
+                            return null;
+                          },
+                        ),
+                        SizedBox(height: 20),
+                        Text(
+                          'Password',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey,
+                            fontSize: 16,
                           ),
                         ),
-                      ),
-                      Center(
-                        child: TextButton(
-                          onPressed: () {},
-                          child: Text('New here? Create Account'),
+                        ValueListenableBuilder(
+                          valueListenable: isObscure,
+                          builder: (context, isVisible, child) {
+                            return TextFormField(
+                              controller: pass,
+                              obscureText: isVisible,
+                              decoration: InputDecoration(
+                                prefixIcon: Icon(Icons.lock_outline),
+                                suffixIcon: ValueListenableBuilder(
+                                  valueListenable: isObscure,
+                                  builder: (context, isVisible, child) {
+                                    return IconButton(
+                                      onPressed: () {
+                                        isObscure.value = !isVisible;
+                                      },
+                                      icon: Icon(
+                                        isVisible
+                                            ? Icons.visibility_off
+                                            : Icons.visibility,
+                                      ),
+                                    );
+                                  },
+                                ),
+                                hintText: '*******',
+                                enabledBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                                errorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                  borderSide: BorderSide(color: Colors.red),
+                                ),
+                                focusedErrorBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return 'Enter Password';
+                                } else if (value.trim().length < 6) {
+                                  return 'Password length must me greater than 6';
+                                }
+                                return null;
+                              },
+                            );
+                          },
                         ),
-                      ),
-                    ],
+                        SizedBox(height: 20),
+                        Center(
+                          child: SizedBox(
+                            width: width - 70,
+                            height: 50,
+                            child: ValueListenableBuilder(
+                              valueListenable: isSigninPage,
+                              builder: (context, isSignin, child) {
+                                return ElevatedButton(
+                                  onPressed: () =>
+                                      authenticate(isSignin: isSignin),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.deepPurple,
+                                    foregroundColor: Colors.white,
+                                    textStyle: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius:
+                                          BorderRadiusGeometry.circular(12),
+                                    ),
+                                  ),
+                                  child: ValueListenableBuilder(
+                                    valueListenable: isSigningin,
+                                    builder: (context, value, child) {
+                                      if (value) {
+                                        return SizedBox(
+                                          width: 30,
+                                          height: 30,
+                                          child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                          ),
+                                        );
+                                      }
+                                      return Text(
+                                        isSignin ? 'Sign In' : 'Sign up',
+                                      );
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                        Center(
+                          child: TextButton(
+                            onPressed: () {
+                              isSigninPage.value = !isSigninPage.value;
+                            },
+                            child: ValueListenableBuilder(
+                              valueListenable: isSigninPage,
+                              builder: (context, isSignin, child) {
+                                return Text(
+                                  isSignin
+                                      ? 'New here? Create Account'
+                                      : 'Already have an account? Sign in',
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-            Row(
-              children: [
-                Expanded(child: Divider()),
-                Text('  OR  '),
-                Expanded(child: Divider()),
-              ],
-            ),
-            SizedBox(height: 20),
-            SizedBox(
-              width: width - 40,
-              height: 50,
-              child: OutlinedButton.icon(
-                onPressed: () {},
-                label: Text('Continue as Guest'),
-                icon: Icon(Icons.person_outline, size: 30),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.blueGrey,
-                  textStyle: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadiusGeometry.circular(12),
+              Row(
+                children: [
+                  Expanded(child: Divider()),
+                  Text('  OR  '),
+                  Expanded(child: Divider()),
+                ],
+              ),
+              SizedBox(height: 20),
+              SizedBox(
+                width: width - 40,
+                height: 50,
+                child: OutlinedButton.icon(
+                  onPressed: () {},
+                  label: Text('Continue as Guest'),
+                  icon: Icon(Icons.person_outline, size: 30),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.blueGrey,
+                    textStyle: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadiusGeometry.circular(12),
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
