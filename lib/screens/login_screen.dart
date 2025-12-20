@@ -1,4 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:expense_tracker/helper/show_snackbars.dart';
+import 'package:expense_tracker/models/user.dart';
+import 'package:expense_tracker/screens/widgets/logo.dart';
+import 'package:expense_tracker/screens/widgets/title.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -14,6 +18,8 @@ class _LoginScreenState extends State<LoginScreen> {
   ValueNotifier<bool> isSigninPage = ValueNotifier(true);
   ValueNotifier<bool> isSigningin = ValueNotifier(false);
 
+  TextEditingController name = TextEditingController();
+  TextEditingController dob = TextEditingController();
   TextEditingController email = TextEditingController();
   TextEditingController pass = TextEditingController();
   final formKey = GlobalKey<FormState>();
@@ -55,6 +61,21 @@ class _LoginScreenState extends State<LoginScreen> {
                 email: email.text.trim(),
                 password: pass.text.trim(),
               );
+
+          if (result.user != null) {
+            UserModel user = UserModel(
+              id: result.user!.uid,
+              name: name.text.trim(),
+              email: email.text.trim(),
+              dob: dob.text,
+            );
+
+            await FirebaseFirestore.instance
+                .collection('user')
+                .doc(user.id)
+                .set(user.toMap());
+          }
+
           if (!mounted) {
             return;
           }
@@ -75,6 +96,20 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
+  void openDatePicker() async {
+    DateTime? pickedDate = await showDatePicker(
+      context: context,
+      firstDate: DateTime(1950),
+      lastDate: DateTime(2010),
+    );
+
+    if (pickedDate != null) {
+      print(pickedDate);
+
+      dob.text = '${pickedDate.day}/${pickedDate.month}/${pickedDate.year}';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
@@ -84,24 +119,7 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             children: [
               SizedBox(height: 20),
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  color: Colors.deepPurple,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Center(
-                  child: Text(
-                    'E',
-                    style: TextStyle(
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-              ),
+              logo(),
               SizedBox(height: 30),
               Text(
                 'Welcome to',
@@ -111,27 +129,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   fontWeight: FontWeight.bold,
                 ),
               ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(
-                    'Expense',
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    'Tracker',
-                    style: TextStyle(
-                      color: Colors.purpleAccent,
-                      fontSize: 30,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
+              title(),
               SizedBox(height: 10),
               Text(
                 'Track Your Spending Smartly',
@@ -147,6 +145,98 @@ class _LoginScreenState extends State<LoginScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        ValueListenableBuilder(
+                          valueListenable: isSigninPage,
+                          builder: (context, isSignin, child) {
+                            if (isSignin) {
+                              return SizedBox.shrink();
+                            }
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Name',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                TextFormField(
+                                  controller: name,
+                                  decoration: InputDecoration(
+                                    prefixIcon: Icon(Icons.email_outlined),
+                                    hintText: 'Full Name',
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                    ),
+                                    errorBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                      borderSide: BorderSide(color: Colors.red),
+                                    ),
+                                    focusedErrorBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                    ),
+                                  ),
+
+                                  validator: (value) {
+                                    if (value == null || value.trim().isEmpty) {
+                                      return 'Enter your name';
+                                    } else if (value.trim().length < 3) {
+                                      return 'Enter valid name';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                SizedBox(height: 20),
+                                Text(
+                                  'Date of Birth',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                TextFormField(
+                                  controller: dob,
+                                  readOnly: true,
+                                  decoration: InputDecoration(
+                                    prefixIcon: Icon(Icons.email_outlined),
+                                    hintText: 'Enter your dob',
+                                    enabledBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                    ),
+                                    focusedBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                    ),
+                                    errorBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                      borderSide: BorderSide(color: Colors.red),
+                                    ),
+                                    focusedErrorBorder: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(15),
+                                    ),
+                                  ),
+
+                                  validator: (value) {
+                                    if (value == null || value.trim().isEmpty) {
+                                      return 'Enter DOB';
+                                    }
+                                    return null;
+                                  },
+
+                                  onTap: () {
+                                    openDatePicker();
+                                  },
+                                ),
+                                SizedBox(height: 20),
+                              ],
+                            );
+                          },
+                        ),
                         Text(
                           'Email',
                           style: TextStyle(
@@ -337,6 +427,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
+              SizedBox(height: 20),
             ],
           ),
         ),
