@@ -1,5 +1,6 @@
 import 'package:expense_tracker/screens/auth_screen.dart';
 import 'package:expense_tracker/screens/login_screen.dart';
+import 'package:expense_tracker/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
@@ -22,9 +23,52 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+
+        // Heading Text
+        textTheme: TextTheme(
+          headlineLarge: TextStyle(
+            color: AppColors.text,
+            fontSize: 30,
+            fontWeight: FontWeight.bold,
+          ),
+
+          titleLarge: TextStyle(
+            color: AppColors.text,
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
+          titleMedium: TextStyle(
+            color: AppColors.text,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
+          titleSmall: TextStyle(
+            color: AppColors.text,
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+          ),
+
+          bodyLarge: TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: AppColors.text,
+          ),
+          bodyMedium: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            color: AppColors.text,
+          ),
+          bodySmall: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w400,
+            color: AppColors.text,
+          ),
+        ),
+
+        //
       ),
-      home: const AuthScreen()
+
+      home: const AuthScreen(),
     );
   }
 }
-

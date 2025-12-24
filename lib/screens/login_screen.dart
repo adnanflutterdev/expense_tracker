@@ -3,6 +3,7 @@ import 'package:expense_tracker/helper/show_snackbars.dart';
 import 'package:expense_tracker/models/user.dart';
 import 'package:expense_tracker/screens/widgets/logo.dart';
 import 'package:expense_tracker/screens/widgets/title.dart';
+import 'package:expense_tracker/utils/app_colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
@@ -119,21 +120,19 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             children: [
               SizedBox(height: 20),
-              logo(),
+              logo(context: context),
               SizedBox(height: 30),
               Text(
                 'Welcome to',
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 30,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: Theme.of(context).textTheme.headlineLarge,
               ),
-              title(),
+              title(context: context),
               SizedBox(height: 10),
               Text(
                 'Track Your Spending Smartly',
-                style: TextStyle(color: Colors.grey),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: AppColors.mutedText),
               ),
               Padding(
                 padding: const EdgeInsets.all(20.0),
@@ -345,7 +344,7 @@ class _LoginScreenState extends State<LoginScreen> {
                                   onPressed: () =>
                                       authenticate(isSignin: isSignin),
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.deepPurple,
+                                    backgroundColor: AppColors.primary,
                                     foregroundColor: Colors.white,
                                     textStyle: TextStyle(
                                       fontSize: 18,

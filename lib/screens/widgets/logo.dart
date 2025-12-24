@@ -1,21 +1,20 @@
+import 'package:expense_tracker/utils/app_colors.dart';
 import 'package:flutter/material.dart';
 
-Container logo({double size = 50}) {
+Container logo({double size = 50, required BuildContext context}) {
   return Container(
     width: size,
     height: size,
     decoration: BoxDecoration(
-      color: Colors.deepPurple,
+      color: AppColors.primary,
       borderRadius: BorderRadius.circular(12),
     ),
     child: Center(
       child: Text(
         'E',
-        style: TextStyle(
-          fontSize: size == 50 ? 30 : 20,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),
+        style: Theme.of(
+          context,
+        ).textTheme.headlineLarge?.copyWith(color: AppColors.white),
       ),
     ),
   );
