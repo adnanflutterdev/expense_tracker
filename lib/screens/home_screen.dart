@@ -5,6 +5,8 @@ import 'package:expense_tracker/screens/tabs/settings_tab.dart';
 import 'package:expense_tracker/screens/tabs/stats_tab.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:expense_tracker/screens/widgets/logo.dart';
+import 'package:expense_tracker/screens/widgets/title.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -23,6 +25,17 @@ class HomeScreen extends StatelessWidget {
       TabModel(icon: Icons.settings_outlined, label: 'Settings'),
     ];
     return Scaffold(
+      appBar: AppBar(
+        leading: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: logo(size: 30, context: context),
+        ),
+        title: title(
+          size: 22,
+          alignment: MainAxisAlignment.start,
+          context: context,
+        ),
+      ),
       body: SafeArea(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
