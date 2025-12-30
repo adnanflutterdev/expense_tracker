@@ -8,11 +8,9 @@ class AppColors {
   static const Color primaryLight = Color.fromARGB(255, 108, 100, 255);
   static const Color shadow = Color(0xffC7D2FE);
 
-
   //  Income Colors
-  static const Color inPrimary = Color(0xff10B981);
-  static const Color inBg = Color(0xff059669);
-  static const Color inLight = Color(0xff6EE7B7);
+  static const Color success = Color(0xff10B981);
+  static const Color successBg = Color.fromARGB(255, 193, 255, 230);
 
   static const Color text = Color(0xff1F2937);
   static const Color subText = Color(0xff4B5563);
@@ -33,5 +31,4 @@ class AppColors {
   // static const Color shadow = Color(0xff);
   // static const Color shadow = Color(0xff);
   // static const Color shadow = Color(0xff);
-
 }

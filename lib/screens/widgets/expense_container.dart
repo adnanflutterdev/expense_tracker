@@ -35,11 +35,11 @@ class ExpenseContainer extends StatelessWidget {
                   height: 25,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: isUp ? AppColors.inLight : AppColors.errorBg,
+                    color: isUp ? AppColors.successBg : AppColors.errorBg,
                   ),
                   child: Icon(
                     icon,
-                    color: isUp ? AppColors.inBg : AppColors.errorText,
+                    color: isUp ? AppColors.success : AppColors.errorText,
                     size: 18,
                   ),
                 ),

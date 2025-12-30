@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:expense_tracker/models/user.dart';
+import 'package:expense_tracker/screens/transaction_sheet.dart';
 import 'package:expense_tracker/screens/widgets/expense_container.dart';
 import 'package:expense_tracker/utils/app_colors.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -12,6 +13,17 @@ class HomeTab extends StatelessWidget {
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width - 30;
     final uid = FirebaseAuth.instance.currentUser?.uid;
+
+    void openSheet() {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        builder: (context) {
+          return TransactionSheet();
+        },
+      );
+    }
+
     return Scaffold(
       body: Padding(
         padding: const EdgeInsets.all(15.0),
@@ -158,9 +170,7 @@ class HomeTab extends StatelessWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          FirebaseAuth.instance.signOut();
-        },
+        onPressed: openSheet,
         backgroundColor: Colors.deepPurple,
         shape: CircleBorder(),
         child: Icon(Icons.add, color: Colors.white),
