@@ -1,7 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:expense_tracker/data/expense_category.dart';
+import 'package:expense_tracker/helper/show_snackbars.dart';
 import 'package:expense_tracker/helper/sizedbox_extention.dart';
 import 'package:expense_tracker/models/category_model.dart';
+import 'package:expense_tracker/models/expense_tracker.dart';
 import 'package:expense_tracker/utils/app_colors.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class TransactionSheet extends StatefulWidget {
@@ -13,6 +17,8 @@ class TransactionSheet extends StatefulWidget {
 
 class _TransactionSheetState extends State<TransactionSheet> {
   int tabIndex = 0;
+  int selectedIndex = -1;
+  bool hasErrorMessage = false;
   PageController pageController = PageController();
   TextEditingController amountController = TextEditingController();
   TextEditingController dateController = TextEditingController();
@@ -21,6 +27,38 @@ class _TransactionSheetState extends State<TransactionSheet> {
     {'label': 'Expense', 'color': AppColors.errorText},
     {'label': 'Income', 'color': AppColors.success},
   ];
+
+  void upload() async {
+    if (amountController.text.trim().isEmpty ||
+        selectedIndex == -1 ||
+        dateController.text.isEmpty) {
+      hasErrorMessage = true;
+      setState(() {});
+    } else {
+      ExpenseTracker expenseTracker = ExpenseTracker(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        type: tabIndex == 0 ? 'Expense' : 'Income',
+        budget: double.parse(amountController.text.trim()),
+        category: expenseCategories[selectedIndex],
+        date: dateController.text,
+      );
+
+      await FirebaseFirestore.instance
+          .collection('user')
+          .doc(FirebaseAuth.instance.currentUser!.uid)
+          .collection('expenses')
+          .doc(expenseTracker.id)
+          .set(expenseTracker.toMap());
+
+      if (!mounted) return;
+      displaySnackBar(
+        context: context,
+        isSuccess: true,
+        message: 'Expense add...',
+      );
+      Navigator.pop(context);
+    }
+  }
 
   void openDatePicker() async {
     DateTime? result = await showDatePicker(
@@ -67,6 +105,14 @@ class _TransactionSheetState extends State<TransactionSheet> {
                 ),
               ],
             ),
+
+            if (hasErrorMessage)
+              Text(
+                'Add required data before saving...',
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyLarge?.copyWith(color: AppColors.errorText),
+              ),
 
             20.h,
             Container(
@@ -163,32 +209,42 @@ class _TransactionSheetState extends State<TransactionSheet> {
                                 ),
                             itemBuilder: (context, index) {
                               CategoryModel category = expenseCategories[index];
-                              return Container(
-                                decoration: BoxDecoration(
-                                  color: AppColors.white,
-                                  borderRadius: BorderRadius.circular(12),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      blurRadius: 2,
-                                      color: AppColors.shadow,
-                                    ),
-                                  ],
-                                ),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      category.icon,
-                                      style: TextStyle(fontSize: 30),
-                                    ),
-                                    Text(
-                                      category.label,
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .bodySmall
-                                          ?.copyWith(fontSize: 10),
-                                    ),
-                                  ],
+                              return GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    selectedIndex = index;
+                                  });
+                                },
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: AppColors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    border: selectedIndex == index
+                                        ? Border.all(color: AppColors.primary)
+                                        : null,
+                                    boxShadow: [
+                                      BoxShadow(
+                                        blurRadius: 2,
+                                        color: AppColors.shadow,
+                                      ),
+                                    ],
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Text(
+                                        category.icon,
+                                        style: TextStyle(fontSize: 30),
+                                      ),
+                                      Text(
+                                        category.label,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(fontSize: 10),
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               );
                             },
@@ -260,7 +316,7 @@ class _TransactionSheetState extends State<TransactionSheet> {
                         SizedBox(
                           width: width,
                           child: ElevatedButton(
-                            onPressed: () {},
+                            onPressed: upload,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary,
                               foregroundColor: Colors.white,

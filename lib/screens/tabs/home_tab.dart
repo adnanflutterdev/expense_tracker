@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:expense_tracker/helper/sizedbox_extention.dart';
+import 'package:expense_tracker/models/expense_tracker.dart';
 import 'package:expense_tracker/models/user.dart';
 import 'package:expense_tracker/screens/transaction_sheet.dart';
 import 'package:expense_tracker/screens/widgets/expense_container.dart';
@@ -12,6 +14,7 @@ class HomeTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width - 30;
+
     final uid = FirebaseAuth.instance.currentUser?.uid;
 
     void openSheet() {
@@ -112,6 +115,10 @@ class HomeTab extends StatelessWidget {
                 UserModel userData = UserModel.fromFirebase(
                   snapshot.data!.data()!,
                 );
+
+                double widthPer =
+                    (userData.spent * 100) / userData.monthlyBudget;
+
                 return Card(
                   child: Padding(
                     padding: const EdgeInsets.all(8.0),
@@ -130,7 +137,7 @@ class HomeTab extends StatelessWidget {
                         Align(
                           alignment: Alignment.centerRight,
                           child: Text(
-                            '${(userData.spent * 100) / userData.monthlyBudget}%',
+                            '$widthPer%',
                             style: Theme.of(context).textTheme.bodyLarge
                                 ?.copyWith(color: AppColors.primary),
                           ),
@@ -150,7 +157,7 @@ class HomeTab extends StatelessWidget {
                                 ),
                               ),
                               Container(
-                                width: (2 / 10) * (width - 16),
+                                width: (widthPer) * (width - 16),
                                 height: 15,
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(7.5),
@@ -164,6 +171,48 @@ class HomeTab extends StatelessWidget {
                     ),
                   ),
                 );
+              },
+            ),
+            20.h,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('Recent'),
+                TextButton.icon(
+                  onPressed: () {},
+                  style: TextButton.styleFrom(
+                    iconAlignment: IconAlignment.end,
+                    iconSize: 15,
+                  ),
+                  icon: Icon(Icons.arrow_forward_ios),
+                  label: Text('View all'),
+                ),
+              ],
+            ),
+            20.h,
+            StreamBuilder(
+              stream: FirebaseFirestore.instance
+                  .collection('user')
+                  .doc(uid)
+                  .collection('expenses')
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return Center(child: CircularProgressIndicator());
+                }
+
+                if (snapshot.hasError ||
+                    snapshot.data == null ||
+                    !snapshot.hasData) {
+                  return Center(child: Text('No Data Found'));
+                }
+
+                List<ExpenseTracker> expenses = snapshot.data!.docs
+                    .map((data) => ExpenseTracker.fromFirebase(data.data()))
+                    .toList();
+
+                print(expenses);
+                return Container();
               },
             ),
           ],
