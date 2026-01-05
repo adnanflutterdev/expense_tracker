@@ -3,7 +3,6 @@ import 'package:expense_tracker/screens/tabs/history_tab.dart';
 import 'package:expense_tracker/screens/tabs/home_tab.dart';
 import 'package:expense_tracker/screens/tabs/settings_tab.dart';
 import 'package:expense_tracker/screens/tabs/stats_tab.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:expense_tracker/screens/widgets/logo.dart';
 import 'package:expense_tracker/screens/widgets/title.dart';
@@ -16,7 +15,7 @@ class HomeScreen extends StatelessWidget {
     ValueNotifier<int> tabIndex = ValueNotifier(0);
     PageController pageController = PageController();
 
-    List<Widget> pages = [HomeTab(), StatsTab(), HistoryTab(), SettingsTab()];
+    List<Widget> pages = [HomeTab(pageController: pageController,), StatsTab(), HistoryTab(), SettingsTab()];
 
     List<TabModel> tabs = [
       TabModel(icon: Icons.home_outlined, label: 'Home'),

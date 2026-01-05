@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:expense_tracker/data/expense_category.dart';
+import 'package:expense_tracker/data/income_category.dart';
 import 'package:expense_tracker/helper/show_snackbars.dart';
 import 'package:expense_tracker/helper/sizedbox_extention.dart';
 import 'package:expense_tracker/models/category_model.dart';
@@ -22,7 +23,7 @@ class _TransactionSheetState extends State<TransactionSheet> {
   PageController pageController = PageController();
   TextEditingController amountController = TextEditingController();
   TextEditingController dateController = TextEditingController();
-  TextEditingController detailsController = TextEditingController();
+  TextEditingController noteController = TextEditingController();
   List<Map<String, dynamic>> tabLabel = [
     {'label': 'Expense', 'color': AppColors.errorText},
     {'label': 'Income', 'color': AppColors.success},
@@ -39,8 +40,11 @@ class _TransactionSheetState extends State<TransactionSheet> {
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         type: tabIndex == 0 ? 'Expense' : 'Income',
         budget: double.parse(amountController.text.trim()),
-        category: expenseCategories[selectedIndex],
+        category: tabIndex == 0
+            ? expenseCategories[selectedIndex]
+            : incomeCategories[selectedIndex],
         date: dateController.text,
+        note: noteController.text.trim(),
       );
 
       await FirebaseFirestore.instance
@@ -197,7 +201,9 @@ class _TransactionSheetState extends State<TransactionSheet> {
                         Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: GridView.builder(
-                            itemCount: expenseCategories.length,
+                            itemCount: tabIndex == 0
+                                ? expenseCategories.length
+                                : incomeCategories.length,
                             physics: NeverScrollableScrollPhysics(),
                             shrinkWrap: true,
                             gridDelegate:
@@ -208,7 +214,9 @@ class _TransactionSheetState extends State<TransactionSheet> {
                                   childAspectRatio: 1.3,
                                 ),
                             itemBuilder: (context, index) {
-                              CategoryModel category = expenseCategories[index];
+                              CategoryModel category = tabIndex == 0
+                                  ? expenseCategories[index]
+                                  : incomeCategories[index];
                               return GestureDetector(
                                 onTap: () {
                                   setState(() {
@@ -292,7 +300,7 @@ class _TransactionSheetState extends State<TransactionSheet> {
                                         ?.copyWith(color: AppColors.subText),
                                   ),
                                   TextField(
-                                    controller: detailsController,
+                                    controller: noteController,
                                     decoration: InputDecoration(
                                       hintText: 'Details',
                                       contentPadding: EdgeInsets.symmetric(
