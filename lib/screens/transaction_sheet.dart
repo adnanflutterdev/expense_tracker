@@ -50,6 +50,13 @@ class _TransactionSheetState extends State<TransactionSheet> {
       await FirebaseFirestore.instance
           .collection('user')
           .doc(FirebaseAuth.instance.currentUser!.uid)
+          .update({
+            'spent': FieldValue.increment(double.parse(amountController.text)),
+          });
+
+      await FirebaseFirestore.instance
+          .collection('user')
+          .doc(FirebaseAuth.instance.currentUser!.uid)
           .collection('expenses')
           .doc(expenseTracker.id)
           .set(expenseTracker.toMap());

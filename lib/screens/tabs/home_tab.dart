@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:expense_tracker/helper/sizedbox_extention.dart';
+import 'package:expense_tracker/models/expense_tracker.dart';
 import 'package:expense_tracker/models/user.dart';
 import 'package:expense_tracker/screens/transaction_sheet.dart';
 import 'package:expense_tracker/screens/widgets/expense_container.dart';
@@ -35,71 +36,108 @@ class HomeTab extends StatelessWidget {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              Container(
-                width: width,
-                // height: (2.5 / 10) * height,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
-                  gradient: LinearGradient(
-                    colors: [AppColors.gradientSt, AppColors.gradientEnd],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    stops: [0, 0.5],
-                  ),
-                ),
-                clipBehavior: Clip.hardEdge,
-                child: Stack(
-                  children: [
-                    Positioned(
-                      right: -((1.3 / 5) * width) / 5,
-                      top: -((1.3 / 5) * width) / 5,
-                      child: Container(
-                        width: (1.3 / 5) * width,
-                        height: (1.3 / 5) * width,
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryLight,
-                          shape: BoxShape.circle,
-                        ),
+              StreamBuilder(
+                stream: FirebaseFirestore.instance
+                    .collection('user')
+                    .doc(FirebaseAuth.instance.currentUser!.uid)
+                    .collection('expenses')
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return Center(child: CircularProgressIndicator());
+                  }
+                  if (snapshot.data == null || snapshot.hasError) {
+                    return Center(child: Text('No Data Found'));
+                  }
+                  // List<QueryDocumentSnapshot<Map<String, dynamic>>> dataFromFirebase =
+                  //     snapshot.data!.docs;
+                  List<ExpenseTracker> allExpenses = snapshot.data!.docs
+                      .map((data) => ExpenseTracker.fromFirebase(data.data()))
+                      .toList();
+                  List<ExpenseTracker> expenses = allExpenses
+                      .where((expense) => expense.type == 'Expense')
+                      .toList();
+                  List<ExpenseTracker> income = allExpenses
+                      .where((expense) => expense.type == 'Income')
+                      .toList();
+                  double totalIncome = 0;
+                  double totalExpense = 0;
+                  for (final i in income) {
+                    totalIncome += i.budget;
+                  }
+                  for (final i in expenses) {
+                    totalExpense += i.budget;
+                  }
+                  print('$totalIncome $totalExpense');
+
+                  return Container(
+                    width: width,
+                    // height: (2.5 / 10) * height,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      gradient: LinearGradient(
+                        colors: [AppColors.gradientSt, AppColors.gradientEnd],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        stops: [0, 0.5],
                       ),
                     ),
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Total Balance',
-                            style: Theme.of(context).textTheme.bodyLarge
-                                ?.copyWith(color: AppColors.white),
+                    clipBehavior: Clip.hardEdge,
+                    child: Stack(
+                      children: [
+                        Positioned(
+                          right: -((1.3 / 5) * width) / 5,
+                          top: -((1.3 / 5) * width) / 5,
+                          child: Container(
+                            width: (1.3 / 5) * width,
+                            height: (1.3 / 5) * width,
+                            decoration: BoxDecoration(
+                              color: AppColors.primaryLight,
+                              shape: BoxShape.circle,
+                            ),
                           ),
-                          Text(
-                            '₹20,000.00',
-                            style: Theme.of(context).textTheme.headlineLarge
-                                ?.copyWith(color: AppColors.white),
-                          ),
-                          SizedBox(height: 20),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              ExpenseContainer(
-                                icon: Icons.trending_up,
-                                title: 'INCOME',
-                                amount: '1,234',
-                                isUp: true,
+                              Text(
+                                'Total Balance',
+                                style: Theme.of(context).textTheme.bodyLarge
+                                    ?.copyWith(color: AppColors.white),
                               ),
-                              ExpenseContainer(
-                                icon: Icons.trending_down,
-                                title: 'EXPENSE',
-                                amount: '234',
-                                isUp: false,
+                              Text(
+                                '₹${totalIncome - totalExpense}',
+                                style: Theme.of(context).textTheme.headlineLarge
+                                    ?.copyWith(color: AppColors.white),
+                              ),
+                              SizedBox(height: 20),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  ExpenseContainer(
+                                    icon: Icons.trending_up,
+                                    title: 'INCOME',
+                                    amount: '₹$totalIncome',
+                                    isUp: true,
+                                  ),
+                                  ExpenseContainer(
+                                    icon: Icons.trending_down,
+                                    title: 'EXPENSE',
+                                    amount: '₹$totalExpense',
+                                    isUp: false,
+                                  ),
+                                ],
                               ),
                             ],
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  );
+                },
               ),
               const SizedBox(height: 15),
               StreamBuilder(
@@ -117,6 +155,10 @@ class HomeTab extends StatelessWidget {
                   UserModel userData = UserModel.fromFirebase(
                     snapshot.data!.data()!,
                   );
+
+                  if (userData.monthlyBudget <= 0) {
+                    return SizedBox.shrink();
+                  }
 
                   double widthPer =
                       (userData.spent * 100) / userData.monthlyBudget;

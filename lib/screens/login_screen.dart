@@ -69,8 +69,8 @@ class _LoginScreenState extends State<LoginScreen> {
               name: name.text.trim(),
               email: email.text.trim(),
               dob: dob.text,
-              monthlyBudget: 0,
-              spent: 0
+              monthlyBudget: 0.0,
+              spent: 0.0
             );
 
             await FirebaseFirestore.instance

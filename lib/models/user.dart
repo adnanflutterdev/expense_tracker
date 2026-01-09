@@ -22,7 +22,7 @@ class UserModel {
       'email': email,
       'dob': dob,
       'monthlyBudget': monthlyBudget,
-      'spent':spent,
+      'spent': spent,
     };
   }
 
@@ -33,7 +33,7 @@ class UserModel {
       email: data['email'],
       dob: data['dob'],
       monthlyBudget: data['monthlyBudget'],
-      spent: (data['spent']as int).toDouble()
+      spent: data['spent'],
     );
   }
 }
